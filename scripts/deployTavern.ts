@@ -2,14 +2,12 @@ import { ethers } from "hardhat";
 
 async function main() {
 
-  const lock = await ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
+  const lock = await ethers.deployContract("Tavern", [],);
 
   await lock.waitForDeployment();
 
   console.log(
-    ` deployed to ${lock.target}`
+    `Tavern deployed to ${lock.target}`
   );
 }
 
