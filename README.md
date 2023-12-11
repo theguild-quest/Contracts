@@ -1,13 +1,25 @@
-# Sample Hardhat Project
+# The Guild contracts Repository
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+### Connect. Collaborate. Conquer.
 
-Try running some of the following tasks:
+On-chain architecture here:
+https://www.figma.com/file/QWbX9rVXy4BEzbQDxC5sNa/The-Guild-Public?type=whiteboard&node-id=0-1&t=VPlS18CdOa9109NC-0
+(under development)
+
+## Usage
+
+Install dependencies:
 
 ```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
+npx i
+```
+
+Compile: 
+```shell
+npx hardhat compile
+```
+
+Deploy: 
+```shell
 npx hardhat run scripts/deploy.ts
 ```
