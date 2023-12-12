@@ -5,7 +5,8 @@
 ## Contains contracts for:
 - Quest Factory (Tavern)
 - Quest Implementation (Quest)
-- Profile NFT 
+- NFT for profiles (ProfileNFT)
+
 On-chain architecture can be found here:
 https://www.figma.com/file/QWbX9rVXy4BEzbQDxC5sNa/The-Guild-Public?type=whiteboard&node-id=0-1&t=VPlS18CdOa9109NC-0
 (under development)
