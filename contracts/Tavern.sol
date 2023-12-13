@@ -35,7 +35,7 @@ contract Tavern is AccessControl {
         escrow.initialize{value: msg.value}();
         quest.initialize(_solver, _seeker,  infoURI);
         QuestToStoreHouse[address(quest)] = address(escrow);
-        emit QuestCreated(_seeker, _solver, address(quest), address(0));
+        emit QuestCreated(_seeker, _solver, address(quest), address(escrow));
     }
 
     function callProccessPayment (address _seeker) external {

@@ -1,13 +1,20 @@
 import { ethers } from "hardhat";
 
 async function main() {
+  const questImpl = await ethers.deployContract("Quest", [],);
+  await questImpl.waitForDeployment();
+  console.log("Quest Implementation deployed to: ", questImpl.target)
 
-  const lock = await ethers.deployContract("Tavern", [],);
+  const escrowImpl = await ethers.deployContract("Escrow", [[]],);
+  await escrowImpl.waitForDeployment();
+  console.log("Esrow Implementation deployed to: ", escrowImpl.target)
 
-  await lock.waitForDeployment();
+  const tavern = await ethers.deployContract("Tavern", [questImpl.target, escrowImpl.target],);
+
+  await tavern.waitForDeployment();
 
   console.log(
-    `Tavern deployed to ${lock.target}`
+    `Tavern deployed to ${tavern.target}`
   );
 }
 
