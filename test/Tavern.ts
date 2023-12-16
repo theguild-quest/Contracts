@@ -5,6 +5,7 @@ import {
   import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
   import { expect } from "chai";
   import { ethers } from "hardhat";
+import { Address } from "../typechain-types";
   
   describe("Tavern", function () {
     // We define a fixture to reuse the same setup in every test.
@@ -57,15 +58,27 @@ import {
     //   });
     });
   
-    describe("QuestCreation", function () {
+    describe("Quests", function () {
+      let quest: Address;
+      let escrow: Address;
       describe("Creation", function () {
-        it("should create the escrow proxy", async function () {
+        it("should emit a creation event", async function () {
             const { tavern, seeker, solver } = await loadFixture(deployTavernFixture)
             
             const questCreation = await tavern.startNewQuest(solver.address, seeker.address, 100n, "");
-            await expect(questCreation).to.emit(tavern,"QuestCreated");
+            const receipt = await ethers.provider.getTransactionReceipt(questCreation.hash);
+
+            let log = receipt?.logs[0]
+            if (log !== undefined) {
+              let eventLog = tavern.interface.parseLog({topics: log.topics as unknown as string[] , data: log.data});
+              console.log("Event ", eventLog);
+              quest = eventLog?.args[2];
+              escrow = eventLog?.args[3];
+            }
+
+            expect(questCreation).to.emit(tavern,"QuestCreated").withArgs([seeker, solver, quest, escrow]);
         });
-  
+        
         // it("Should revert with the right error if called from another account", async function () {
         //   const { lock, unlockTime, otherAccount } = await loadFixture(
         //     deployOneYearLockFixture
