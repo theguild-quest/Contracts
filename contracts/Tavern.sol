@@ -16,7 +16,7 @@ contract Tavern is AccessControl {
     address public escrowImplementation;
     address public questImplementation;
     //IProfileNFT public nFT;
-    mapping(address => address) QuestToStoreHouse; //escrow
+    mapping(address => address) public QuestToStoreHouse; //escrow
 
     event QuestCreated(address seeker, address solver, address quest, address escrow); 
 
@@ -32,7 +32,7 @@ contract Tavern is AccessControl {
     function startNewQuest(address _solver, address _seeker, uint256 _paymentAmount, string memory infoURI) external payable {
         IEscrow escrow = IEscrow(Clones.clone(escrowImplementation));
         IQuest quest = IQuest(Clones.clone(questImplementation));
-        escrow.initialize{value: msg.value}();
+        escrow.initialize{value: msg.value}(); // here is the error
         quest.initialize(_solver, _seeker,  infoURI);
         QuestToStoreHouse[address(quest)] = address(escrow);
         emit QuestCreated(_seeker, _solver, address(quest), address(escrow));
