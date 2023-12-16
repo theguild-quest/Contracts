@@ -46,6 +46,7 @@ contract Quest {
     function resolveDispute(uint8 seekerShare, uint8 solverShare) external{}
 
     function finishQuest() external onlySeeker returns (bool) {
+        require(initialized);
         ITavern(tavern).callProccessPayment(seeker);
         return true;
     }
