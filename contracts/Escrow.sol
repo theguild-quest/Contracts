@@ -29,7 +29,7 @@ contract Escrow {
     governance = msg.sender;
   }
 
-  function initialize() external payable returns (bool){
+  function initialize() external payable returns (bool){   
     require(!initialized);
     initialized = true;
     tavern = msg.sender;
@@ -38,7 +38,7 @@ contract Escrow {
   }
 
   function proccessPayment(address seeker) external{
-    (bool sent, bytes memory data) = seeker.call{value: paymentAmount}("");
+    (bool sent, bytes memory data) = payable(seeker).call{value: paymentAmount}("");
     require(sent, "Failed to send Ether");
   }
   // function approve(address _token, address to, uint256 amount) public onlyGov {
