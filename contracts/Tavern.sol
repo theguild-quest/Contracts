@@ -15,18 +15,16 @@ contract Tavern is AccessControl {
     address public owner;
     address public escrowImplementation;
     address public questImplementation;
-    //IProfileNFT public nFT;
+    IProfileNFT public nFT;
     mapping(address => address) public QuestToStoreHouse; //escrow
 
     event QuestCreated(address seeker, address solver, address quest, address escrow); 
 
-    constructor(address _questImplementation, address _escrowImplementation
-    //, address _profileNft
-    ) {
+    constructor(address _questImplementation, address _escrowImplementation, address _profileNft) {
         escrowImplementation = _escrowImplementation;
         questImplementation = _questImplementation;
         owner = msg.sender;
-        //nFT = IProfileNFT(_profileNft);
+        nFT = IProfileNFT(_profileNft);
     }
 
     function startNewQuest(address _solver, address _seeker, uint256 _paymentAmount, string memory infoURI) external payable {
@@ -43,8 +41,9 @@ contract Tavern is AccessControl {
         require(escrow != address(0), "Quest doesn't exist");
         IEscrow(escrow).proccessPayment(_seeker);
     }
-    // function getProfileNFT() public view returns (address) {
-    //     return address(nFT);
-    // }
+
+    function getProfileNFT() public view returns (address) {
+        return address(nFT);
+    }
 
 }
