@@ -12,7 +12,7 @@ contract ProfileNFT is ERC721URIStorage {
     using SafeERC20 for IERC20;
     
     uint32 private _tokenCounter;
-    mapping(uint256 => address) public tokenMinter;
+    mapping(uint256 => address) public tokenMinter; // not needed
     address public admin;
     address public nftFactory;
 
@@ -26,7 +26,7 @@ contract ProfileNFT is ERC721URIStorage {
         _;
     }
 
-    constructor(address _factory) ERC721("Guild embership NFT", "GuildNFT") {
+    constructor(address _factory) ERC721("Guild membership NFT", "GuildNFT") {
         admin = msg.sender;
         nftFactory = _factory;
         _tokenCounter++; // Start Token IDs from 1 instead of 0, we use 0 to indicate absense of NFT on a wallet
@@ -43,11 +43,11 @@ contract ProfileNFT is ERC721URIStorage {
     function issueNFT(
         address user,
         string memory tokenURI
-    ) public onlyFactory returns (uint256) {
-        uint256 newNFTId = _tokenCounter;
+    ) public onlyFactory returns (uint32) {
+        uint32 newNFTId = _tokenCounter;
         _mint(user, newNFTId);
         _setTokenURI(newNFTId, tokenURI);
-        tokenMinter[newNFTId] = user;
+        tokenMinter[newNFTId] = user; // do we need  this?
         _tokenCounter++;
         return newNFTId;
     }
@@ -60,16 +60,16 @@ contract ProfileNFT is ERC721URIStorage {
 
     function tier(uint256 tokenID) public view returns (uint256) {
         address handler = INFTFactory(nftFactory).getHandler(tokenID);
-        return IReferralHandler(handler).getTier();
+        return IReferralHandler(handler).getTier(); // unit256 for tier?
     }
 
     function transfer( // internal + is never used 
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual  {
-        INFTFactory(nftFactory).registerUserEpoch(to); // Alerting NFT Factory to update incase of new user
-        super._transfer(from, to, tokenId);
+        address _to,
+        uint256 _tokenId
+    ) external virtual  {
+        INFTFactory(nftFactory).registerUserEpoch(_to); // Alerting NFT Factory to update incase of new user address
+        super.transferFrom(msg.sender, _to, _tokenId);
+        //_transfer(msg.sender, to, tokenId);
     }
 
     function getTransferLimit(uint256 tokenID) public view returns (uint256) {
