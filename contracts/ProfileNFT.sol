@@ -14,10 +14,10 @@ contract ProfileNFT is ERC721URIStorage {
     uint32 private _tokenCounter;
     mapping(uint256 => address) public tokenMinter; // not needed
     address public admin;
-    address public nftFactory;
+    address public nexus;
 
-    modifier onlyFactory() {
-        require(msg.sender == nftFactory, "only factory");
+    modifier onlyNexus() { // nexus / hub
+        require(msg.sender == nexus, "only nexus");
         _;
     }
 
@@ -28,7 +28,7 @@ contract ProfileNFT is ERC721URIStorage {
 
     constructor(address _factory) ERC721("Guild membership NFT", "GuildNFT") {
         admin = msg.sender;
-        nftFactory = _factory;
+        nexus = _factory;
         _tokenCounter++; // Start Token IDs from 1 instead of 0, we use 0 to indicate absense of NFT on a wallet
     }
 
@@ -36,14 +36,14 @@ contract ProfileNFT is ERC721URIStorage {
         admin = account;
     }
 
-    function setFactory(address account) public onlyAdmin {
-        nftFactory = account;
+    function setNexus(address account) public onlyAdmin {
+        nexus = account;
     }
 
     function issueNFT(
         address user,
         string memory tokenURI
-    ) public onlyFactory returns (uint32) {
+    ) public onlyNexus returns (uint32) {
         uint32 newNFTId = _tokenCounter;
         _mint(user, newNFTId);
         _setTokenURI(newNFTId, tokenURI);
@@ -53,13 +53,13 @@ contract ProfileNFT is ERC721URIStorage {
     }
 
     function changeURI(uint256 tokenID, string memory tokenURI) public {
-        address handler = INFTFactory(nftFactory).getHandler(tokenID);
+        address handler = INFTFactory(nexus).getHandler(tokenID);
         require(msg.sender == handler, "Only Handler can update Token's URI");
         _setTokenURI(tokenID, tokenURI);
     }
 
     function tier(uint256 tokenID) public view returns (uint256) {
-        address handler = INFTFactory(nftFactory).getHandler(tokenID);
+        address handler = INFTFactory(nexus).getHandler(tokenID);
         return IReferralHandler(handler).getTier(); // unit256 for tier?
     }
 
@@ -67,14 +67,27 @@ contract ProfileNFT is ERC721URIStorage {
         address _to,
         uint256 _tokenId
     ) external virtual  {
-        INFTFactory(nftFactory).registerUserEpoch(_to); // Alerting NFT Factory to update incase of new user address
+        INFTFactory(nexus).registerUserEpoch(_to); // Alerting NFT Factory to update incase of new user address
         super.transferFrom(msg.sender, _to, _tokenId);
         //_transfer(msg.sender, to, tokenId);
     }
 
     function getTransferLimit(uint256 tokenID) public view returns (uint256) {
-        address handler = INFTFactory(nftFactory).getHandler(tokenID);
+        address handler = INFTFactory(nexus).getHandler(tokenID);
         return IReferralHandler(handler).getTransferLimit();
+    }
+
+
+    /**
+     * @dev Returns whether `tokenId` exists.
+     *
+     * Tokens can be managed by their owner or approved accounts via {approve} or {setApprovalForAll}.
+     *
+     * Tokens start existing when they are minted (`_mint`),
+     * and stop existing when they are burned (`_burn`).
+     */
+    function _exists(uint256 tokenId) internal view virtual returns (bool) {
+        return _ownerOf(tokenId) != address(0);
     }
 
     function recoverTokens(
@@ -83,5 +96,33 @@ contract ProfileNFT is ERC721URIStorage {
     ) public onlyAdmin {
         uint256 tokenBalance = IERC20(_token).balanceOf(address(this));
         IERC20(_token).transfer(benefactor, tokenBalance);
+    }
+
+    /**
+     * @dev Transfers `tokenId` from `from` to `to`.
+     *  As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
+     *
+     * Requirements:
+     *
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must be owned by `from`.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external virtual {
+        require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer from incorrect owner");
+        require(to != address(0), "ERC721: transfer to the zero address");
+
+        //_beforeTokenTransfer(from, to, tokenId, 1);
+
+        // Check that tokenId was not transferred by `_beforeTokenTransfer` hook
+        require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer from incorrect owner");
+        require(balanceOf(to) == 0, "One address cannot have multiple tokens");
+
+        _transfer(from, to, tokenId);
     }
 }
