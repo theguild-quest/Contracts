@@ -5,4 +5,5 @@ interface ITavern {
     function startNewQuest(address _solver, address _seeker, uint256 _paymentAmount, string memory infoURI) external payable;
     function callProccessPayment (address _seeker) external;
     function getProfileNFT() external view returns (address);
+    function getEscrowImplementation() external view returns (address);
 }
