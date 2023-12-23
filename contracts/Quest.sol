@@ -1,53 +1,80 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces/ITavern.sol";
+import "./interfaces/Quests/IEscrow.sol";
+import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /**
  * @title Quest Implementation
- * @dev Executes the proxy calls
+ * @dev Executes the calls from proxies
  */
 
 contract Quest {
 
     bool public initialized = false;
+    bool public started = false;
     address public tavern;
-    string infoURI;
-    //uint32 seekerId
+    address escrowImplementation;
+
     address public solver;
     address public seeker;
+    IEscrow escrow;
+    uint256 public  paymentAmount;
+    string public infoURI;
 
     modifier onlySeeker() {
     require(msg.sender == seeker, "only seeker");
     _;
     }
 
+    modifier onlyTavern() {
+        require(msg.sender == tavern, "only tavern");
+        _;
+    }
+
+    constructor(address _escrowImplementation, address _tavern){
+        tavern = _tavern;
+        escrowImplementation = _escrowImplementation;
+    }
+
     function initialize(
-        //uint32 _seekerId, 
         address _solver,
         address _seeker,
+        uint256 _paymentAmount,
         string memory _infoURI)
-        external
+        external onlyTavern
         returns (bool)
         {
         require(!initialized);
         initialized = true;
-        //seekerId = _seekerId;
         solver = _solver;
         seeker = _seeker;
-        tavern = msg.sender;
+        paymentAmount = _paymentAmount;
         infoURI = _infoURI;
         
         return true;
     }
 
-    function startDispute() external{}
+    function startQuest() external payable onlySeeker{
+        require(initialized, "not initialized");
+        require(!started, "already started");
+        require(msg.value >= paymentAmount, "wrong payment amount");
+        IEscrow escrow = IEscrow(Clones.clone(escrowImplementation));
+        escrow.initialize{value: msg.value}();
+        started = true;
+    }
+
+    function startDispute() external{
+        require(started, "not started");
+
+    }
 
     function resolveDispute(uint8 seekerShare, uint8 solverShare) external{}
 
-    function finishQuest() external onlySeeker returns (bool) {
-        require(initialized);
-        ITavern(tavern).callProccessPayment(seeker);
+    function finishQuest() external onlySeeker returns (bool) { // might be changed 
+        require(started, "not started");
+
+        escrow.proccessPayment(solver);
         return true;
     }
 }
