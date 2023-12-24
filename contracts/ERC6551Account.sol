@@ -23,7 +23,7 @@ contract ExampleERC6551Account is
         address to,
         uint256 value,
         bytes calldata data,
-        uint256 operation
+        uint8 operation
     ) external payable returns (bytes memory result) {
         require(_isValidSigner(msg.sender), "Invalid signer");
         require(operation == 0, "Only call operations are supported");
@@ -101,10 +101,4 @@ contract ExampleERC6551Account is
         return _state;
     }
 
-    function execute(
-        address to,
-        uint256 value,
-        bytes calldata data,
-        uint8 operation
-    ) external payable override returns (bytes memory) {}
 }
