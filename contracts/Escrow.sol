@@ -4,12 +4,18 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IEscrow } from "./interfaces/Quests/IEscrow.sol";
 
-contract Escrow {
+/**
+ * @title Quest Escrow 
+ * @notice Stores reward for quest
+ * @dev Implementation contract, instances are created as clones 
+ */
+contract Escrow is IEscrow {
   using SafeERC20 for IERC20;
 
   bool public initialized = false;
-  address public tavern;
+  address public quest;
   uint256 paymentAmount;
   address[] public tokens;
   address public governance; // who is it?
@@ -19,8 +25,8 @@ contract Escrow {
     _;
   }
 
-  modifier onlyTavern() {
-    require(msg.sender == tavern, "only tavern");
+  modifier onlyQuest() {
+    require(msg.sender == quest, "only quest");
     _;
   }
 
@@ -29,16 +35,15 @@ contract Escrow {
     governance = msg.sender;
   }
 
-  function initialize() external payable returns (bool){   
+  function initialize() external payable {   
     require(!initialized);
     initialized = true;
-    tavern = msg.sender;
+    quest = msg.sender;
     paymentAmount = msg.value;
-    return true;
   }
 
-  function proccessPayment(address seeker) external{
-    (bool sent, bytes memory data) = payable(seeker).call{value: paymentAmount}("");
+  function proccessPayment(address solver) external onlyQuest{
+    (bool sent, bytes memory data) = payable(solver).call{value: paymentAmount}("");
     require(sent, "Failed to send Ether");
   }
   // function approve(address _token, address to, uint256 amount) public onlyGov {

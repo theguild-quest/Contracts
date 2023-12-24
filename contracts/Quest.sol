@@ -1,15 +1,17 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces/Quests/IEscrow.sol";
+import { IEscrow } from "./interfaces/Quests/IEscrow.sol";
 import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
+import { IQuest } from "./interfaces/Quests/IQuest.sol";
 
 /**
  * @title Quest Implementation
- * @dev Executes the calls from proxies
+ * @notice Controls the quest flow
+ * @dev Implementation contract, instances are created as clones 
  */
 
-contract Quest {
+contract Quest is IQuest{
 
     bool public initialized = false;
     bool public started = false;
@@ -59,20 +61,22 @@ contract Quest {
         require(initialized, "not initialized");
         require(!started, "already started");
         require(msg.value >= paymentAmount, "wrong payment amount");
-        IEscrow escrow = IEscrow(Clones.clone(escrowImplementation));
+        escrow = IEscrow(Clones.clone(escrowImplementation));
         escrow.initialize{value: msg.value}();
         started = true;
     }
 
     function startDispute() external{
-        require(started, "not started");
+        require(started, "quest not started");
 
     }
 
-    function resolveDispute(uint8 seekerShare, uint8 solverShare) external{}
+    function resolveDispute(uint8 seekerShare, uint8 solverShare) external{
+
+    }
 
     function finishQuest() external onlySeeker returns (bool) { // might be changed 
-        require(started, "not started");
+        require(started, "quest not started");
 
         escrow.proccessPayment(solver);
         return true;
