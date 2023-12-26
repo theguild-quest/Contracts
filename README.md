@@ -26,5 +26,5 @@ npx hardhat compile
 
 Deploy: 
 ```shell
-npx hardhat run scripts/deploy.ts
+npx hardhat run scripts/<script name>
 ```
