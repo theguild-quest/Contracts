@@ -22,6 +22,8 @@ contract Tavern is AccessControl, ITavern {
     address public seekerFeesTreasury;
     address public solverFeesTreasury;
     address public disputeFeesTreasury;
+    address private counselor; //mediator
+    uint256 public reviewPeriod = 1;
     IProfileNFT private nFT;
 
     modifier onlyBarkeeper() {
@@ -57,20 +59,14 @@ contract Tavern is AccessControl, ITavern {
         address _solver, // wallet address of the user 
         address _seeker, // wallet address of the user 
         uint256 _paymentAmount,
-        string memory infoURI
+        string memory infoURI,
+        bool withTokens  
     ) external payable onlyBarkeeper {
         IQuest quest = IQuest(Clones.clone(questImplementation));
         //_solver = nFT.belongsTo(_solver);
-        quest.initialize(_solver, _seeker, _paymentAmount, infoURI);
-        //QuestToStoreHouse[address(quest)] = address(escrow);
+        quest.initialize(_solver, _seeker, _paymentAmount, infoURI, escrowNativeImplementation);
         emit QuestCreated(_seeker, _solver, address(quest), _paymentAmount);
     }
-
-    // function callProccessPayment (address _seeker) external {
-    //     //address escrow = QuestToStoreHouse[msg.sender];
-    //     //require(escrow != address(0), "Quest doesn't exist");
-    //     IEscrow(escrow).proccessPayment(_seeker);
-    // }
 
     // in case of backend problem
     function setBarkeeper(address keeper) external onlyOwner {
@@ -104,6 +100,23 @@ contract Tavern is AccessControl, ITavern {
 
     function setDisputeTreasuryAddress(address treasury) external onlyOwner {
         disputeFeesTreasury = treasury;
+    }
+
+    function setCounselor(address _counselor) external onlyOwner {
+        counselor = _counselor;
+    }
+
+    function setReviewPeriod(uint256 period) external onlyOwner {
+        reviewPeriod = period;
+    }
+
+
+    function getMagistrate() external view returns (address){
+        return counselor;
+    }
+
+    function getBarkeeper() external view onlyOwner returns (address){
+        return barkeeper;
     }
 
     function getProfileNFT() public view returns (address) {
