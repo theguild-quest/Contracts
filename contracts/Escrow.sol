@@ -11,28 +11,19 @@ import { IEscrow } from "./interfaces/Quests/IEscrow.sol";
  * @notice Stores reward for quest
  * @dev Implementation contract, instances are created as clones 
  */
-contract Escrow is IEscrow {
+contract EscrowNative is IEscrow {
   using SafeERC20 for IERC20;
 
   bool public initialized = false;
   address public quest;
   uint256 paymentAmount;
-  address[] public tokens;
-  address public governance; // who is it?
-
-  modifier onlyGov() {
-    require(msg.sender == governance, "only gov");
-    _;
-  }
 
   modifier onlyQuest() {
     require(msg.sender == quest, "only quest");
     _;
   }
 
-  constructor (address[] memory _tokens) {
-    tokens = _tokens;
-    governance = msg.sender;
+  constructor () {
   }
 
   function initialize() external payable {   
@@ -42,20 +33,18 @@ contract Escrow is IEscrow {
     paymentAmount = msg.value;
   }
 
-  function proccessPayment(address solver) external onlyQuest{
-    (bool sent, bytes memory data) = payable(solver).call{value: paymentAmount}("");
-    require(sent, "Failed to send Ether");
+  function proccessPayment(address solver, address treasury) external onlyQuest{
+    (bool sentTreasury, bytes memory dataT) = payable(treasury).call{value: (paymentAmount * 10) / 100}(""); // change to flexible % 
+    require(sentTreasury, "Failed to send Ether to solver");
+    (bool sentSolver, bytes memory dataS) = payable(solver).call{value: (paymentAmount * 90) / 100}(""); // change to flexible % 
+    require(sentSolver, "Failed to send Ether to solver");
   }
-  // function approve(address _token, address to, uint256 amount) public onlyGov {
-  //   IERC20(_token).approve(to, 0);
-  //   IERC20(_token).approve(to, amount);
-  // }
-
-  // function transfer(address _token, address to, uint256 amount) public onlyGov {
-  //   IERC20(_token).transfer(to, amount);
-  // }
-
-  function setGovernance(address account) external onlyGov {
-    governance = account;
+  
+  function proccessResolution(address seeker, address solver, uint8 seekerShare, uint8 solverShare, address treasury) external onlyQuest{
+    (bool sentSeeker, bytes memory data) = payable(seeker).call{value: (paymentAmount * seekerShare) / 100}("");
+    require(sentSeeker, "Failed to send Ether");
+    (bool sentSolver, bytes memory datas) = payable(solver).call{value: (paymentAmount * solverShare) / 100}(""); // change to flexible % 
+    require(sentSolver, "Failed to send Ether");
   }
+
 }
