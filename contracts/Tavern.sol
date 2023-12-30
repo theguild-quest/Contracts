@@ -3,7 +3,8 @@ pragma solidity ^0.8.0;
 
 import "./interfaces/IProfileNFT.sol";
 import "./interfaces/Quests/IQuest.sol";
-import "./interfaces/Quests/IEscrow.sol";
+//import "./interfaces/Quests/IEscrow.sol";
+import "./interfaces/Quests/IQuest.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 import { ITavern } from "./interfaces/Quests/ITavern.sol";
@@ -14,11 +15,14 @@ import { ITavern } from "./interfaces/Quests/ITavern.sol";
  */
 contract Tavern is AccessControl, ITavern {
     address public owner;
-    address public barkeeper;
-    address public escrowImplementation;
+    address private barkeeper;
+    address public escrowNativeImplementation;  // for native blockchain tokens 
+    address public escrowTokenImplementation;  // for ERC20 tokens
     address public questImplementation;
-    IProfileNFT public nFT;
-    mapping(address => uint32) public QuestToSeeker; //escrow
+    address public seekerFeesTreasury;
+    address public solverFeesTreasury;
+    address public disputeFeesTreasury;
+    IProfileNFT private nFT;
 
     modifier onlyBarkeeper() {
         require(msg.sender == barkeeper, "only barkeeper");
@@ -29,6 +33,7 @@ contract Tavern is AccessControl, ITavern {
         require(msg.sender == owner, "only owner");
         _;
     }
+    
     event QuestCreated(
         address seeker,
         address solver,
@@ -38,23 +43,24 @@ contract Tavern is AccessControl, ITavern {
 
     constructor(
         address _questImplementation,
-        address _escrowImplementation,
+        address _escrowNativeImplementation,
         address _profileNft
     ) {
-        escrowImplementation = _escrowImplementation;
+        escrowNativeImplementation = _escrowNativeImplementation;
         questImplementation = _questImplementation;
         owner = msg.sender;
         nFT = IProfileNFT(_profileNft);
     }
 
-    // Create
     function createNewQuest(
-        address _solver,
-        address _seeker,
+        // user identificators
+        address _solver, // wallet address of the user 
+        address _seeker, // wallet address of the user 
         uint256 _paymentAmount,
         string memory infoURI
     ) external payable onlyBarkeeper {
         IQuest quest = IQuest(Clones.clone(questImplementation));
+        //_solver = nFT.belongsTo(_solver);
         quest.initialize(_solver, _seeker, _paymentAmount, infoURI);
         //QuestToStoreHouse[address(quest)] = address(escrow);
         emit QuestCreated(_seeker, _solver, address(quest), _paymentAmount);
@@ -66,16 +72,42 @@ contract Tavern is AccessControl, ITavern {
     //     IEscrow(escrow).proccessPayment(_seeker);
     // }
 
+    // in case of backend problem
+    function setBarkeeper(address keeper) external onlyOwner {
+        barkeeper = keeper;
+    }
+
+    // in case of serious emergency
+    function setProfileNft(address nft) external onlyOwner{
+        nFT= IProfileNFT(nft);
+    }
+
+    function setQuestImplementation(address impl) external onlyOwner {
+        escrowNativeImplementation = impl;
+    }
+
+    function setEscrowNativeImplementation(address impl) external onlyOwner {
+        escrowNativeImplementation = impl;
+    }
+
+    function setEscrowTokenImplementation(address impl) external onlyOwner {
+        escrowTokenImplementation = impl;
+    }
+
+    function setSeekerTreasury(address treasury) external onlyOwner {
+        seekerFeesTreasury = treasury;
+    }
+
+    function setSolverTreasury(address treasury) external onlyOwner {
+        solverFeesTreasury = treasury;
+    }
+
+    function setDisputeTreasuryAddress(address treasury) external onlyOwner {
+        disputeFeesTreasury = treasury;
+    }
+
     function getProfileNFT() public view returns (address) {
         return address(nFT);
-    }
-
-    function getEscrowImplementation() external view returns (address) {
-        return escrowImplementation;
-    }
-
-    function getQuestImplementation() external view returns (address) {
-        return questImplementation;
     }
 
 }
