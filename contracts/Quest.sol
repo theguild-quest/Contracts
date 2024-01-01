@@ -80,6 +80,7 @@ contract Quest is IQuest{
     function startQuest() external payable onlySeeker { 
         require(initialized, "not initialized");
         require(!started, "already started");
+        require(Tavern.confirmNFTOwnership(msg.sender), "Seeker has no profile NFT");
         require(msg.value >= paymentAmount, "wrong payment amount");
         escrow = IEscrow(Clones.clone(escrowImplemntation));
         escrow.initialize{value: msg.value}();

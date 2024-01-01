@@ -62,10 +62,16 @@ contract Tavern is AccessControl, ITavern {
         string memory infoURI,
         bool withTokens  
     ) external payable onlyBarkeeper {
+        require(confirmNFTOwnership(_seeker), "seeker doesn't hold nft");
         IQuest quest = IQuest(Clones.clone(questImplementation));
         //_solver = nFT.belongsTo(_solver);
         quest.initialize(_solver, _seeker, _paymentAmount, infoURI, escrowNativeImplementation);
         emit QuestCreated(_seeker, _solver, address(quest), _paymentAmount);
+    }
+
+    function confirmNFTOwnership(address identity) public view returns (bool confirmed){
+       confirmed = nFT.balanceOf(identity) > 0;
+       return confirmed;
     }
 
     // in case of backend problem
