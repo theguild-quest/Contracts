@@ -14,7 +14,7 @@ const exampleERC6551Account = ethers.getAddress("0x00B2140A27ac9003cc8693e2ad3CE
 const salt = 0;
 const chainId = 43113; // fuji testnet
 const nftAddress = ethers.getAddress("0x06D825d9303f02B4BfCE5D49504aF33aeeb8e4e1");
-const tokenId = 0; 
+const tokenId = 1; // Guild Profile nft ids start from 1
 
 
 async function main() {
@@ -44,5 +44,5 @@ async function main() {
 main().catch((error) => {
     console.error(error);
     process.exitCode = 1;
-  });
+});
   
