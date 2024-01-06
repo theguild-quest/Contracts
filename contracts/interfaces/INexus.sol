@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-interface INFTFactory {
+interface INexus {
     function isHandler(address) external view returns (bool);
     function getHandler(uint256) external view returns (address);
     function getEpoch(address) external view returns (uint256);
