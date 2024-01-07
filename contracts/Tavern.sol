@@ -16,8 +16,8 @@ import { ITavern } from "./interfaces/Quests/ITavern.sol";
 contract Tavern is AccessControl, ITavern {
     address public owner;
     address private barkeeper;
-    address public escrowNativeImplementation;  // for native blockchain tokens 
-    address public escrowTokenImplementation;  // for ERC20 tokens
+    address public escrowNativeImplementation; // for native blockchain tokens
+    address public escrowTokenImplementation; // for ERC20 tokens
     address public questImplementation;
     address public seekerFeesTreasury;
     address public solverFeesTreasury;
@@ -35,10 +35,10 @@ contract Tavern is AccessControl, ITavern {
         require(msg.sender == owner, "only owner");
         _;
     }
-    
+
     event QuestCreated(
-        address seeker,
-        address solver,
+        uint32 solverId,
+        uint32 seekerId,
         address quest,
         uint256 paymentAmount
     );
@@ -56,22 +56,29 @@ contract Tavern is AccessControl, ITavern {
 
     function createNewQuest(
         // user identificators
-        address _solver, // wallet address of the user 
-        address _seeker, // wallet address of the user 
+        uint32 _solverId,
+        uint32 _seekerId,
         uint256 _paymentAmount,
         string memory infoURI,
-        bool withTokens  
+        bool withTokens
     ) external payable onlyBarkeeper {
-        require(confirmNFTOwnership(_seeker), "seeker doesn't hold nft");
         IQuest quest = IQuest(Clones.clone(questImplementation));
         //_solver = nFT.belongsTo(_solver);
-        quest.initialize(_solver, _seeker, _paymentAmount, infoURI, escrowNativeImplementation);
-        emit QuestCreated(_seeker, _solver, address(quest), _paymentAmount);
+        quest.initialize(
+            _solverId,
+            _seekerId,
+            _paymentAmount,
+            infoURI,
+            escrowNativeImplementation
+        );
+        emit QuestCreated(_seekerId, _solverId, address(quest), _paymentAmount);
     }
 
-    function confirmNFTOwnership(address identity) public view returns (bool confirmed){
-       confirmed = nFT.balanceOf(identity) > 0;
-       return confirmed;
+    function confirmNFTOwnership(
+        address identity
+    ) public view returns (bool confirmed) {
+        confirmed = nFT.balanceOf(identity) > 0;
+        return confirmed;
     }
 
     // in case of backend problem
@@ -80,8 +87,8 @@ contract Tavern is AccessControl, ITavern {
     }
 
     // in case of serious emergency
-    function setProfileNft(address nft) external onlyOwner{
-        nFT= IProfileNFT(nft);
+    function setProfileNft(address nft) external onlyOwner {
+        nFT = IProfileNFT(nft);
     }
 
     function setQuestImplementation(address impl) external onlyOwner {
@@ -116,17 +123,29 @@ contract Tavern is AccessControl, ITavern {
         reviewPeriod = period;
     }
 
-
-    function getMagistrate() external view returns (address){
+    function getCounselor() external view returns (address) {
         return counselor;
     }
 
-    function getBarkeeper() external view onlyOwner returns (address){
+    function getBarkeeper() external view onlyOwner returns (address) {
         return barkeeper;
     }
 
     function getProfileNFT() public view returns (address) {
         return address(nFT);
     }
+
+    function ownerOf(uint32 nftId) external view override returns (address) {
+        return nFT.ownerOf(nftId);
+    }
+
+    function createNewQuest(
+        address _solver,
+        address _seeker,
+        uint256 _paymentAmount,
+        string memory infoURI,
+        bool withTokens
+    ) external payable override {}
+
 
 }

@@ -25,8 +25,8 @@ contract Quest is IQuest{
     ITavern private Tavern;
     address public escrowImplemntation;  // native or with token
 
-    address public solver;
-    address public seeker;
+    uint32 public solverId;
+    uint32 public seekerId;
     IEscrow private escrow;
     uint256 public  paymentAmount;
     string public infoURI;
@@ -34,12 +34,12 @@ contract Quest is IQuest{
     address public magistrate;
 
     modifier onlySeeker() {
-    require(msg.sender == seeker, "only seeker");
+    require(Tavern.ownerOf(seekerId) == msg.sender, "only Seeker");
     _;
     }
 
     modifier onlySolver() {
-    require(msg.sender == solver, "only solver");
+    require(Tavern.ownerOf(solverId) == msg.sender, "only Solver");
     _;
     }
 
@@ -58,8 +58,8 @@ contract Quest is IQuest{
     }
 
     function initialize(
-        address _solver,
-        address _seeker,
+        uint32 _solverNftId,
+        uint32 _seekerNftId,
         uint256 _paymentAmount,
         string memory _infoURI,
         address _escrowImplemntation 
@@ -69,8 +69,8 @@ contract Quest is IQuest{
         {
         require(!initialized);
         initialized = true;
-        solver = _solver;
-        seeker = _seeker;
+        solverId = _solverNftId;
+        seekerId = _seekerNftId;
         paymentAmount = _paymentAmount;
         infoURI = _infoURI;
         escrowImplemntation = _escrowImplemntation;
@@ -80,7 +80,6 @@ contract Quest is IQuest{
     function startQuest() external payable onlySeeker { 
         require(initialized, "not initialized");
         require(!started, "already started");
-        require(Tavern.confirmNFTOwnership(msg.sender), "Seeker has no profile NFT");
         require(msg.value >= paymentAmount, "wrong payment amount");
         escrow = IEscrow(Clones.clone(escrowImplemntation));
         escrow.initialize{value: msg.value}();
@@ -91,7 +90,7 @@ contract Quest is IQuest{
         require(started, "quest not started");
         require(!beingDisputed, "Dispute started before");
         beingDisputed = true;
-        magistrate = Tavern.getMagistrate();
+        //magistrate = Tavern.magistrate();
     }
 
     function resolveDispute(uint8 seekerShare, uint8 solverShare) external onlyMagistrate{
@@ -99,7 +98,7 @@ contract Quest is IQuest{
         require(!rewarded, "Rewarded before");
         require(seekerShare + solverShare == 100, "Shares should sum to 100");
         rewarded = true;
-        escrow.proccessResolution(seeker, solver, seekerShare, solverShare, Tavern.disputeFeesTreasury());
+        escrow.proccessResolution(seekerId, solverId, seekerShare, solverShare);
     }
 
     function finishQuest() external onlySolver { // might be changed 
@@ -123,7 +122,7 @@ contract Quest is IQuest{
         require(!beingDisputed, "Is under dispute");
         require(rewardTime <= block.timestamp, "Not reward time yet");
         rewarded = true;
-        escrow.proccessPayment(solver, Tavern.solverFeesTreasury());
+        escrow.proccessPayment(solverId, Tavern.solverFeesTreasury());
     }
 
     

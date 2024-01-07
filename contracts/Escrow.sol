@@ -33,18 +33,18 @@ contract EscrowNative is IEscrow {
     paymentAmount = msg.value;
   }
 
-  function proccessPayment(address solver, address treasury) external onlyQuest{
-    (bool sentTreasury, bytes memory dataT) = payable(treasury).call{value: (paymentAmount * 10) / 100}(""); // change to flexible % 
-    require(sentTreasury, "Failed to send Ether to solver");
-    (bool sentSolver, bytes memory dataS) = payable(solver).call{value: (paymentAmount * 90) / 100}(""); // change to flexible % 
-    require(sentSolver, "Failed to send Ether to solver");
+  function proccessPayment(uint32 solverId) external onlyQuest{
+    // (bool sentTreasury, bytes memory dataT) = payable(treasury).call{value: (paymentAmount * 10) / 100}(""); // change to flexible % 
+    // require(sentTreasury, "Failed to send Ether to solver");
+    // (bool sentSolver, bytes memory dataS) = payable(solver).call{value: (paymentAmount * 90) / 100}(""); // change to flexible % 
+    // require(sentSolver, "Failed to send Ether to solver");
   }
   
-  function proccessResolution(address seeker, address solver, uint8 seekerShare, uint8 solverShare, address treasury) external onlyQuest{
-    (bool sentSeeker, bytes memory data) = payable(seeker).call{value: (paymentAmount * seekerShare) / 100}("");
-    require(sentSeeker, "Failed to send Ether");
-    (bool sentSolver, bytes memory datas) = payable(solver).call{value: (paymentAmount * solverShare) / 100}(""); // change to flexible % 
-    require(sentSolver, "Failed to send Ether");
+  function proccessResolution(uint32 seekerId, uint32 solverId, uint8 seekerShare, uint8 solverShare) external onlyQuest{
+    //(bool sentSeeker, bytes memory data) = payable(seeker).call{value: (paymentAmount * seekerShare) / 100}("");
+    //require(sentSeeker, "Failed to send Ether");
+    //(bool sentSolver, bytes memory datas) = payable(solver).call{value: (paymentAmount * solverShare) / 100}(""); // change to flexible % 
+    //require(sentSolver, "Failed to send Ether");
   }
 
 }
