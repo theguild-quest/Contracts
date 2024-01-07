@@ -11,7 +11,7 @@ interface ITavern {
     function solverFeesTreasury() external view returns (address);
     function disputeFeesTreasury() external view returns (address);
     function reviewPeriod() external view returns (uint256);
-    //function barkeeper() external view returns (address);
     function getProfileNFT() external view returns(address);
-    function getMagistrate() external view returns(address);
+    function getCounselor() external view returns(address);
+    function ownerOf(uint32) external view returns (address);
 }
